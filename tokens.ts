@@ -6,7 +6,7 @@ interface Token {
 
 const letToken: Token = {
     value: "let",
-    type: "variable"
+    type: "varInit"
 };
 
 const plusToken: Token = {
@@ -29,6 +29,30 @@ const closeParenthesesToken: Token = {
     type: "paren"
 };
 
-const tokenArr: Token[] = [plusToken, minusToken, openParenthesesToken, closeParenthesesToken];
+const commaToken: Token = {
+    value: ",",
+    type: "comma"
+};
 
-export { Token, tokenArr };
+const equalsToken: Token = {
+    value: "be",
+    type: "assign"
+};
+
+const semicolonToken: Token = {
+    value: ";",
+    type: "semi"
+};
+
+const tokenObj: Record<string, Token> = {
+    plusToken: plusToken,
+    minusToken: minusToken,
+    openParenthesesToken: openParenthesesToken,
+    closeParenthesesToken: closeParenthesesToken,
+    commaToken: commaToken,
+    equalsToken: equalsToken,
+    semicolonToken: semicolonToken,
+    letToken: letToken
+};
+
+export {Token, tokenObj};
