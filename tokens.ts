@@ -19,6 +19,16 @@ const minusToken: Token = {
     type: "operator"
 };
 
+const multiplyToken: Token = {
+    value: "*",
+    type: "operator"
+};
+
+const divideToken: Token = {
+    value: "/",
+    type: "operator"
+};
+
 const openParenthesesToken: Token = {
     value: "(",
     type: "paren"
@@ -47,6 +57,8 @@ const semicolonToken: Token = {
 const tokenObj: Record<string, Token> = {
     plusToken: plusToken,
     minusToken: minusToken,
+    multiplyToken: multiplyToken,
+    divideToken: divideToken,
     openParenthesesToken: openParenthesesToken,
     closeParenthesesToken: closeParenthesesToken,
     commaToken: commaToken,

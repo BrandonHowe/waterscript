@@ -1,5 +1,7 @@
 import { expect } from 'chai';
 import { removeWhitespace } from "../helpers";
+import { tokenObj } from "../tokens";
+import { lexifyArr } from "../index";
 
 describe("whitespace remover", () => {
     it('should remove all whitespace from a string', () => {
@@ -8,9 +10,9 @@ describe("whitespace remover", () => {
     })
 });
 
-describe("string splitter based on array", () => {
+describe("lexer", () => {
     it('should split the string based on an array of chars', () => {
         const input = "1 - 23 + 4";
-        const delimiters = ["=", "-", "+"];
+        expect(lexifyArr(input, tokenObj)).to.eql(["1", "-", "23", "+", "4"]);
     })
 });

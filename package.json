@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "@types/chai": "^4.2.11",
-    "@types/mocha": "^7.0.2"
+    "@types/mocha": "^7.0.2",
+    "fs": "0.0.1-security",
+    "path": "^0.12.7"
   }
 }
