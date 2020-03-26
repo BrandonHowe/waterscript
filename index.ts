@@ -50,46 +50,14 @@ const parseArr = (arr: Array<string>): Array<Token> => {
             currentArr.push({...tokenObj.letToken});
             currentArr[currentArr.length - 1].args = [];
             currentArrs.push(currentArr[currentArr.length - 1].args);
-        } else if (str === "+") {
+        } else if (str === "+" || str === "-" || str === "*" || str === "/") {
             const arg1 = currentArr.pop();
+            const val = str === "+" ? "add"
+                        : str === "-" ? "subtract"
+                        : str === "*" ? "multiply"
+                        : "divide";
             currentArr.push(<Token>{
-                value: "add",
-                type: "function",
-                args: []
-            });
-            currentArrs.push(currentArr[currentArr.length - 1].args);
-            currentArr = currentArrs[currentArrs.length - 1];
-            currentArr.push(arg1);
-            afterOperator = true;
-            continue;
-        } else if (str === "-") {
-            const arg1 = currentArr.pop();
-            currentArr.push(<Token>{
-                value: "subtract",
-                type: "function",
-                args: []
-            });
-            currentArrs.push(currentArr[currentArr.length - 1].args);
-            currentArr = currentArrs[currentArrs.length - 1];
-            currentArr.push(arg1);
-            afterOperator = true;
-            continue;
-        } else if (str === "*") {
-            const arg1 = currentArr.pop();
-            currentArr.push(<Token>{
-                value: "multiply",
-                type: "function",
-                args: []
-            });
-            currentArrs.push(currentArr[currentArr.length - 1].args);
-            currentArr = currentArrs[currentArrs.length - 1];
-            currentArr.push(arg1);
-            afterOperator = true;
-            continue;
-        } else if (str === "/") {
-            const arg1 = currentArr.pop();
-            currentArr.push(<Token>{
-                value: "divide",
+                value: val,
                 type: "function",
                 args: []
             });
