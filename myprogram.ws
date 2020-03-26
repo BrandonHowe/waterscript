@@ -1,2 +1,5 @@
-let str be 10 / 2 - 3;
-print(str);
+let test be (a, b) {
+    a / b;
+}
+test(test(12, 2),test(4, 2));
+print(#);

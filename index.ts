@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import {removeWhitespace, regexSpecial, removeLineBreaks} from "./helpers";
 import {Token, tokenObj} from "./tokens";
-import {variables} from "./variables";
+import {functions, variables} from "./variables";
 import * as path from "path";
 
 const lexifyArr = (str: string, separators: Record<string, Token>): Array<string> => {
@@ -28,6 +28,12 @@ const parseArr = (arr: Array<string>): Array<Token> => {
         if (str === "") {
             continue;
         }
+        if (str === "#") {
+            currentArr.push(<Token>{
+                value: "#",
+                type: "variable"
+            })
+        }
         if (str === ";") {
             if (afterEquals === true) {
                 currentArrs.pop();
@@ -36,13 +42,31 @@ const parseArr = (arr: Array<string>): Array<Token> => {
             currentArr = currentArrs[currentArrs.length - 1];
             currentArr.push(tokenObj.semicolonToken);
         } else if (str === "(") {
-            currentArr[currentArr.length - 1].args = [];
-            currentArr[currentArr.length - 1].type = "function";
-            currentArrs.push(currentArr[currentArr.length - 1].args);
+            if (!afterEquals) {
+                currentArr[currentArr.length - 1].args = [];
+                currentArr[currentArr.length - 1].type = "function";
+                currentArrs.push(currentArr[currentArr.length - 1].args);
+            } else {
+                currentArr.push(<Token>{
+                    value: "args",
+                    type: "args",
+                    args: []
+                });
+                currentArrs.push(currentArr[currentArr.length - 1].args);
+            }
         } else if (str === ")") {
             currentArrs.pop();
+        } else if (str === "{") {
+            currentArr.push(<Token>{
+                value: "block",
+                type: "block",
+                args: []
+            });
+            currentArrs.push(currentArr[currentArr.length - 1].args);
+        } else if (str === "}") {
+            currentArrs.pop();
         } else if (str === ",") {
-            currentArr.push(tokenObj.commaToken);
+            // currentArr.push(tokenObj.commaToken);
         } else if (str === "be") {
             afterEquals = true;
             continue;
@@ -79,7 +103,7 @@ const parseArr = (arr: Array<string>): Array<Token> => {
         } else {
             currentArr.push(<Token>{
                 value: str,
-                type: "undefined"
+                type: "variable"
             })
         }
         if (afterOperator === true) {
@@ -94,11 +118,23 @@ const evalFunc = (token: Token): Token => {
     if (token.value === "add" || token.value === "subtract" || token.value === "multiply" || token.value === "divide") {
         let addend1 = {...token.args[0]};
         let addend2 = {...token.args[1]};
+        if (addend1.type === "variable") {
+            addend1 = variables[addend1.value];
+        }
+        if (addend2.type === "variable") {
+            addend2 = variables[addend2.value];
+        }
         if (addend1.type === "function") {
             addend1 = evalFunc(addend1);
         }
         if (addend2.type === "function") {
             addend2 = evalFunc(addend2);
+        }
+        if (addend1.type === "variable") {
+            addend1 = variables[addend1.value];
+        }
+        if (addend2.type === "variable") {
+            addend1 = variables[addend1.value];
         }
         if (addend1.type === "number" && addend2.type === "number") {
             const funcValue = token.value === "add" ? (Number(addend1.value) + Number(addend2.value)).toString()
@@ -109,35 +145,62 @@ const evalFunc = (token: Token): Token => {
                 value: funcValue,
                 type: "number"
             };
-            return token;
+            variables["#"] = token;
+            return variables["#"];
         } else {
             const funcValue = token.value === "add" ? addend1.value + addend2.value : "null";
             token = {
                 value: funcValue,
                 type: "string"
             };
-            return token;
+            variables["#"] = token;
+            return variables["#"];
         }
+    } else if (token.value === "print") {
+        const varValue = token.args[0];
+        if (varValue.type === "variable") {
+            console.log(variables[varValue.value].value);
+            variables["#"] = variables[varValue.value];
+        } else {
+            console.log(varValue.value);
+            variables["#"] = varValue;
+        }
+    } else {
+        let copiedArgs = token.args.map(l => Object.assign(l, l));
+        for (let i = 0; i < copiedArgs.length; i++) {
+            if (copiedArgs[i].type === "function") {
+                copiedArgs[i] = evalFunc(copiedArgs[i]);
+            }
+        }
+        for (let i = 0; i < copiedArgs.length; i++) {
+            variables[functions[token.value].args[i].value] = <Token>{};
+            variables[functions[token.value].args[i].value].value = copiedArgs[i].value;
+            variables[functions[token.value].args[i].value].type = copiedArgs[i].type;
+        }
+        variables["#"] = {...evaluate(functions[token.value].block.args)};
+        for (let i = 0; i < copiedArgs.length; i++) {
+            delete variables[functions[token.value].args[i].value];
+        }
+        return variables["#"];
     }
 };
 
-const evaluate = (ast: Array<Token>) => {
+const evaluate = (ast: Array<Token>): Token => {
     for (let token of ast) {
         if (token.value === "let") {
-            const [varName, varValue] = token.args;
-            if (varValue.type === "string" || varValue.type === "number") {
-                variables[varName.value] = varValue;
-            } else if (varValue.type === "function") {
-                variables[varName.value] = evalFunc(varValue);
-            } else {
-                variables[varName.value] = variables[varValue.value];
-            }
+            functions[token.args[0].value] = {
+                name: token.args[0].value,
+                args: token.args[1].args,
+                block: token.args[2]
+            };
         }
-        if (token.value === "print") {
-            const varValue = token.args[0];
-            console.log(variables[varValue.value].value);
+        if (token.value === "block") {
+            variables["#"] = evaluate(token.args);
+        } else if (token.type === "function") {
+            variables["#"] = evalFunc(token);
         }
     }
+    return variables["#"];
 };
 
 const runProgram = (inputString: string) => {

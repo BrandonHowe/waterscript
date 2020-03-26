@@ -39,6 +39,16 @@ const closeParenthesesToken: Token = {
     type: "paren"
 };
 
+const openBraceToken: Token = {
+    value: "{",
+    type: "brace",
+};
+
+const closeBraceToken: Token = {
+    value: "}",
+    type: "brace",
+};
+
 const commaToken: Token = {
     value: ",",
     type: "comma"
@@ -54,17 +64,25 @@ const semicolonToken: Token = {
     type: "semi"
 };
 
+const argumentsToken: Token = {
+    value: "args",
+    type: "args"
+};
+
 const tokenObj: Record<string, Token> = {
-    plusToken: plusToken,
-    minusToken: minusToken,
-    multiplyToken: multiplyToken,
-    divideToken: divideToken,
-    openParenthesesToken: openParenthesesToken,
-    closeParenthesesToken: closeParenthesesToken,
-    commaToken: commaToken,
-    equalsToken: equalsToken,
-    semicolonToken: semicolonToken,
-    letToken: letToken
+    plusToken,
+    minusToken,
+    multiplyToken,
+    divideToken,
+    openParenthesesToken,
+    closeParenthesesToken,
+    openBraceToken,
+    closeBraceToken,
+    commaToken,
+    equalsToken,
+    semicolonToken,
+    letToken,
+    argumentsToken
 };
 
 export {Token, tokenObj};
