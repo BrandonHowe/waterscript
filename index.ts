@@ -139,10 +139,10 @@ const evalFunc = (token: Token): Token => {
     if (token.value === "add" || token.value === "subtract" || token.value === "multiply" || token.value === "divide") {
         let addend1 = {...token.args[0]};
         let addend2 = {...token.args[1]};
-        if (addend1.type === "variable") {
+        while (addend1.type === "variable") {
             addend1 = variables[addend1.value];
         }
-        if (addend2.type === "variable") {
+        while (addend2.type === "variable") {
             addend2 = variables[addend2.value];
         }
         if (addend1.type === "function") {
@@ -150,12 +150,6 @@ const evalFunc = (token: Token): Token => {
         }
         if (addend2.type === "function") {
             addend2 = evalFunc(addend2);
-        }
-        if (addend1.type === "variable") {
-            addend1 = variables[addend1.value];
-        }
-        if (addend2.type === "variable") {
-            addend1 = variables[addend1.value];
         }
         if (addend1.type === "number" && addend2.type === "number") {
             const funcValue = token.value === "add" ? (Number(addend1.value) + Number(addend2.value)).toString()
@@ -191,6 +185,9 @@ const evalFunc = (token: Token): Token => {
         for (let i = 0; i < copiedArgs.length; i++) {
             if (copiedArgs[i].type === "function") {
                 copiedArgs[i] = evalFunc(copiedArgs[i]);
+            }
+            while (copiedArgs[i].type === "variable") {
+                copiedArgs[i] = variables[copiedArgs[i].value];
             }
         }
         for (let i = 0; i < copiedArgs.length; i++) {

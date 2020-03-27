@@ -1,9 +1,9 @@
-let fib be (a, {
-    a - 1;
-    print(#);
+let loop be (a, {
     if (a > 0, {
-        fib(#);
+        a - 1;
+        print(#);
+        loop(#);
     });
 });
 
-fib(6);
+loop(6);
