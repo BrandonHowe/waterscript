@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha -r ts-node/register test/unit.ts",
-    "water": "node index.js"
+    "water": "tsc index.ts && node index.js"
   },
   "author": "",
   "license": "ISC",
