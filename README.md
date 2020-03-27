@@ -57,22 +57,46 @@ print(#); # prints 9
 Functions are declared with `let be` syntax. A function can take in multiple arguments and then returns a block.
 
 ```$xslt
-let plus be (a, b) {
+let plus be (a, b, {
     a + b;
-};
+});
+
+plus(6, 2); # retuns 8;
 ```
 
-### If statements (TODO)
+### If statements
 
-You will also be able to  use if statements. The syntax will be:
+If statements are a key part of any language. Make sure to have a semicolon at the end.
 
 ```$xslt
-if (a > b, {
-    print(a);
+if (5 > 3, {
+    print("greater");
 });
 ```
 
-You can use these, but not inside functions. Stay tuned for when you can!
+### The case for loops
+
+Loops are a key part of any language, but they are absent in WaterScript. Instead, one must use a combination of functions and if statements to achieve a loop.
+
+```
+let loop be (a, {
+    if (a > 0, {
+        a - 1;
+        print(#); # replace this with whatever you want to do
+        loop(#);
+    });
+});
+
+loop(6);
+```
+
+### Comments
+
+You can comment out the rest of a string via %%.
+
+```
+print("This is not a comment."); %% This is a comment.
+```
 
 ### Semicolons
 

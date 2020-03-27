@@ -1,9 +1,3 @@
-let loop be (a, {
-    if (a > 0, {
-        a - 1;
-        print(#);
-        loop(#);
-    });
+if (5 > 3, {
+    print("greater"); %% returns 3
 });
-
-loop(6);

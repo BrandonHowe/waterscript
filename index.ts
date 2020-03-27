@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import {removeWhitespace, regexSpecial, removeLineBreaks } from "./helpers";
+import {removeWhitespace, regexSpecial } from "./helpers";
 import {Token, tokenObj} from "./tokens";
 import {functions, variables} from "./variables";
 import * as path from "path";
@@ -25,15 +25,24 @@ const parseArr = (arr: Array<string>): Array<Token> => {
     let rightAfterBe = false;
     let afterOperator = false;
     let currentIf = false;
+    let commented = false;
     for (let i = 0; i < arr.length; i++) {
         const str = arr[i];
         let currentArr = currentArrs[currentArrs.length - 1];
-        if (str === "") {
+        if (str === "\n") {
+            commented = false;
             continue;
         }
-        if (str === ";") {
+        if (commented === true) {
+            continue;
+        }
+        if (str === "") {
+            continue;
+        } else if (str === ";") {
             currentArr = currentArrs[currentArrs.length - 1];
             currentArr.push(tokenObj.semicolonToken);
+        } else if (str === "/*") {
+            commented = true;
         } else if (str === "(") {
             if (!rightAfterBe && !currentIf) {
                 currentArr[currentArr.length - 1].args = [];
@@ -52,6 +61,11 @@ const parseArr = (arr: Array<string>): Array<Token> => {
         } else if (str === ")") {
             currentArrs.pop();
         } else if (str === "{") {
+            if (rightAfterBe === true) {
+                currentArrs.pop();
+                rightAfterBe = false;
+            }
+            currentArr = currentArrs[currentArrs.length - 1];
             currentArr.push(<Token>{
                 value: "block",
                 type: "block",
@@ -61,10 +75,6 @@ const parseArr = (arr: Array<string>): Array<Token> => {
         } else if (str === "}") {
             currentArrs.pop();
         } else if (str === ",") {
-            if (rightAfterBe === true) {
-                currentArrs.pop();
-                rightAfterBe = false;
-            }
             // currentArr.push(tokenObj.commaToken);
         } else if (str === "be") {
             inFuncDef = true;
@@ -272,7 +282,7 @@ const runProgram = (inputString: string) => {
 const main = (dir: string) => {
     fs.readFile(path.resolve(__dirname, dir), "utf-8", (err, data) => {
         if (err) throw err;
-        runProgram(removeLineBreaks(data));
+        runProgram(data);
     })
 };
 

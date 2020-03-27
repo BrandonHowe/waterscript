@@ -104,6 +104,16 @@ const notEqualToken: Token = {
     type: "compare"
 };
 
+const newLineToken: Token = {
+    value: "\n",
+    type: "newline"
+};
+
+const commentToken: Token = {
+    value: "%%",
+    type: "comment"
+};
+
 const tokenObj: Record<string, Token> = {
     plusToken,
     minusToken,
@@ -124,7 +134,9 @@ const tokenObj: Record<string, Token> = {
     greaterEqualToken,
     lessEqualToken,
     equalToken,
-    notEqualToken
+    notEqualToken,
+    newLineToken,
+    commentToken
 };
 
 export {Token, tokenObj};
