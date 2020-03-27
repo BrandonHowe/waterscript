@@ -288,4 +288,4 @@ const main = (dir: string) => {
 
 main(process.argv[2]);
 
-export {lexifyArr, parseArr, evalFunc, evaluate, runProgram};
+export {lexifyArr, parseArr, evalFunc, evaluate, runProgram, main};

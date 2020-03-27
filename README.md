@@ -2,6 +2,25 @@
 
 This is just a language I'm making to improve and reinforce my language development skills. I have no idea what the syntax will be, and it's probably going to be some convoluted JS-looking thing.
 
+## Running WaterScript files
+
+You can make WaterScript files with the `.ws` extension. To run them, simply run:
+
+```
+git clonehttps://github.com/xWafl/waterscript.git
+
+npm install
+npm link
+```
+
+To run a file, simply do
+
+```
+water myprogram.ws
+```
+
+Replace myprogram with the filename of your choosing.
+
 ## Docs
 
 ### Expressions
