@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import {removeWhitespace, regexSpecial, removeLineBreaks, numIfNum} from "./helpers";
+import {removeWhitespace, regexSpecial, removeLineBreaks } from "./helpers";
 import {Token, tokenObj} from "./tokens";
 import {functions, variables} from "./variables";
 import * as path from "path";
@@ -39,7 +39,9 @@ const parseArr = (arr: Array<string>): Array<Token> => {
                 currentArr[currentArr.length - 1].args = [];
                 currentArr[currentArr.length - 1].type = "function";
                 currentArrs.push(currentArr[currentArr.length - 1].args);
-            } else if (!currentIf) {
+            } else if (!rightAfterBe && currentIf) {
+
+            } else {
                 currentArr.push(<Token>{
                     value: "args",
                     type: "args",
@@ -48,7 +50,6 @@ const parseArr = (arr: Array<string>): Array<Token> => {
                 currentArrs.push(currentArr[currentArr.length - 1].args);
             }
         } else if (str === ")") {
-            rightAfterBe = false;
             currentArrs.pop();
         } else if (str === "{") {
             currentArr.push(<Token>{
@@ -59,11 +60,11 @@ const parseArr = (arr: Array<string>): Array<Token> => {
             currentArrs.push(currentArr[currentArr.length - 1].args);
         } else if (str === "}") {
             currentArrs.pop();
-            if (inFuncDef === true) {
-                currentArrs.pop();
-                inFuncDef = false;
-            }
         } else if (str === ",") {
+            if (rightAfterBe === true) {
+                currentArrs.pop();
+                rightAfterBe = false;
+            }
             // currentArr.push(tokenObj.commaToken);
         } else if (str === "be") {
             inFuncDef = true;
@@ -215,33 +216,43 @@ const evaluate = (ast: Array<Token>): Token => {
             };
         }
         if (token.value === "if") {
+            let arg0 = {...token.args[0]};
+            let arg2 = {...token.args[2]};
+            while (arg0.type === "variable") {
+                arg0 = variables[arg0.value];
+            }
+            while (arg2.type === "variable") {
+                arg2 = variables[token.args[2].value];
+            }
+            const farg0 = arg0.type === "number" ? Number(arg0.value) : arg0.value;
+            const farg2 = arg2.type === "number" ? Number(arg2.value) : arg2.value;
             if (token.args[1].value === "==") {
-                if (numIfNum(token.args[0].value) === numIfNum(token.args[2].value)) {
+                if (farg0 === farg2) {
                     variables["#"] = evaluate(token.args[3].args);
                 }
             }
             if (token.args[1].value === "!=") {
-                if (numIfNum(token.args[0].value) !== numIfNum(token.args[2].value)) {
+                if (farg0 !== farg2) {
                     variables["#"] = evaluate(token.args[3].args);
                 }
             }
             if (token.args[1].value === ">=") {
-                if (numIfNum(token.args[0].value) >= numIfNum(token.args[2].value)) {
+                if (farg0 >= farg2) {
                     variables["#"] = evaluate(token.args[3].args);
                 }
             }
             if (token.args[1].value === "<=") {
-                if (numIfNum(token.args[0].value) <= numIfNum(token.args[2].value)) {
+                if (farg0 <= farg2) {
                     variables["#"] = evaluate(token.args[3].args);
                 }
             }
             if (token.args[1].value === ">") {
-                if (numIfNum(token.args[0].value) > numIfNum(token.args[2].value)) {
+                if (farg0 > farg2) {
                     variables["#"] = evaluate(token.args[3].args);
                 }
             }
             if (token.args[1].value === "<") {
-                if (numIfNum(token.args[0].value) < numIfNum(token.args[2].value)) {
+                if (farg0 < farg2) {
                     variables["#"] = evaluate(token.args[3].args);
                 }
             }
