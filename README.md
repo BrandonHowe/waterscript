@@ -7,7 +7,7 @@ This is just a language I'm making to improve and reinforce my language developm
 You can make WaterScript files with the `.ws` extension. To run them, simply run:
 
 ```
-git clonehttps://github.com/xWafl/waterscript.git
+git clone https://github.com/xWafl/waterscript.git
 
 npm install
 npm link
