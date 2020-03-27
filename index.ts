@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import {removeWhitespace, regexSpecial, removeLineBreaks} from "./helpers";
+import {removeWhitespace, regexSpecial, removeLineBreaks, numIfNum} from "./helpers";
 import {Token, tokenObj} from "./tokens";
 import {functions, variables} from "./variables";
 import * as path from "path";
@@ -21,32 +21,25 @@ const lexifyArr = (str: string, separators: Record<string, Token>): Array<string
 const parseArr = (arr: Array<string>): Array<Token> => {
     let tokenArr: Array<Token> = [];
     let currentArrs: Array<Array<Token>> = [tokenArr];
-    let afterEquals = false;
+    let inFuncDef = false;
+    let rightAfterBe = false;
     let afterOperator = false;
-    for (const str of arr) {
+    let currentIf = false;
+    for (let i = 0; i < arr.length; i++) {
+        const str = arr[i];
         let currentArr = currentArrs[currentArrs.length - 1];
         if (str === "") {
             continue;
         }
-        if (str === "#") {
-            currentArr.push(<Token>{
-                value: "#",
-                type: "variable"
-            })
-        }
         if (str === ";") {
-            if (afterEquals === true) {
-                currentArrs.pop();
-                afterEquals = false;
-            }
             currentArr = currentArrs[currentArrs.length - 1];
             currentArr.push(tokenObj.semicolonToken);
         } else if (str === "(") {
-            if (!afterEquals) {
+            if (!rightAfterBe && !currentIf) {
                 currentArr[currentArr.length - 1].args = [];
                 currentArr[currentArr.length - 1].type = "function";
                 currentArrs.push(currentArr[currentArr.length - 1].args);
-            } else {
+            } else if (!currentIf) {
                 currentArr.push(<Token>{
                     value: "args",
                     type: "args",
@@ -55,6 +48,7 @@ const parseArr = (arr: Array<string>): Array<Token> => {
                 currentArrs.push(currentArr[currentArr.length - 1].args);
             }
         } else if (str === ")") {
+            rightAfterBe = false;
             currentArrs.pop();
         } else if (str === "{") {
             currentArr.push(<Token>{
@@ -65,23 +59,45 @@ const parseArr = (arr: Array<string>): Array<Token> => {
             currentArrs.push(currentArr[currentArr.length - 1].args);
         } else if (str === "}") {
             currentArrs.pop();
+            if (inFuncDef === true) {
+                currentArrs.pop();
+                inFuncDef = false;
+            }
         } else if (str === ",") {
             // currentArr.push(tokenObj.commaToken);
         } else if (str === "be") {
-            afterEquals = true;
+            inFuncDef = true;
+            rightAfterBe = true;
             continue;
         } else if (str === "let") {
             currentArr.push({...tokenObj.letToken});
             currentArr[currentArr.length - 1].args = [];
             currentArrs.push(currentArr[currentArr.length - 1].args);
-        } else if (str === "+" || str === "-" || str === "*" || str === "/") {
+        } else if (str === "if") {
+            currentArr.push({...tokenObj.ifToken});
+            currentArr[currentArr.length - 1].args = [];
+            currentArrs.push(currentArr[currentArr.length - 1].args);
+            currentIf = true;
+            continue;
+        } else if (str === "+") {
             const arg1 = currentArr.pop();
-            const val = str === "+" ? "add"
-                        : str === "-" ? "subtract"
+            currentArr.push(<Token>{
+                value: "add",
+                type: "function",
+                args: []
+            });
+            currentArrs.push(currentArr[currentArr.length - 1].args);
+            currentArr = currentArrs[currentArrs.length - 1];
+            currentArr.push(arg1);
+            afterOperator = true;
+            continue;
+        } else if (str === "-" || str === "*" || str === "/") {
+            const arg1 = currentArr.pop();
+            const value = str === "-" ? "subtract"
                         : str === "*" ? "multiply"
                         : "divide";
             currentArr.push(<Token>{
-                value: val,
+                value: value,
                 type: "function",
                 args: []
             });
@@ -94,7 +110,8 @@ const parseArr = (arr: Array<string>): Array<Token> => {
             currentArr.push(<Token>{
                 value: str,
                 type: "number"
-            })
+            });
+            continue;
         } else if (str.charAt(0) === "\"" && str.charAt(str.length - 1) === "\"") {
             currentArr.push(<Token>{
                 value: str.slice(1, str.length - 1),
@@ -109,6 +126,9 @@ const parseArr = (arr: Array<string>): Array<Token> => {
         if (afterOperator === true) {
             currentArrs.pop();
             afterOperator = false;
+        }
+        if (currentIf === true) {
+            currentIf = false;
         }
     }
     return tokenArr;
@@ -138,9 +158,9 @@ const evalFunc = (token: Token): Token => {
         }
         if (addend1.type === "number" && addend2.type === "number") {
             const funcValue = token.value === "add" ? (Number(addend1.value) + Number(addend2.value)).toString()
-                            : token.value === "subtract" ? (Number(addend1.value) - Number(addend2.value)).toString()
-                            : token.value === "multiply" ? (Number(addend1.value) * Number(addend2.value)).toString()
-                            : (Number(addend1.value) / Number(addend2.value)).toString();
+                : token.value === "subtract" ? (Number(addend1.value) - Number(addend2.value)).toString()
+                    : token.value === "multiply" ? (Number(addend1.value) * Number(addend2.value)).toString()
+                        : (Number(addend1.value) / Number(addend2.value)).toString();
             token = {
                 value: funcValue,
                 type: "number"
@@ -194,10 +214,42 @@ const evaluate = (ast: Array<Token>): Token => {
                 block: token.args[2]
             };
         }
+        if (token.value === "if") {
+            if (token.args[1].value === "==") {
+                if (numIfNum(token.args[0].value) === numIfNum(token.args[2].value)) {
+                    variables["#"] = evaluate(token.args[3].args);
+                }
+            }
+            if (token.args[1].value === "!=") {
+                if (numIfNum(token.args[0].value) !== numIfNum(token.args[2].value)) {
+                    variables["#"] = evaluate(token.args[3].args);
+                }
+            }
+            if (token.args[1].value === ">=") {
+                if (numIfNum(token.args[0].value) >= numIfNum(token.args[2].value)) {
+                    variables["#"] = evaluate(token.args[3].args);
+                }
+            }
+            if (token.args[1].value === "<=") {
+                if (numIfNum(token.args[0].value) <= numIfNum(token.args[2].value)) {
+                    variables["#"] = evaluate(token.args[3].args);
+                }
+            }
+            if (token.args[1].value === ">") {
+                if (numIfNum(token.args[0].value) > numIfNum(token.args[2].value)) {
+                    variables["#"] = evaluate(token.args[3].args);
+                }
+            }
+            if (token.args[1].value === "<") {
+                if (numIfNum(token.args[0].value) < numIfNum(token.args[2].value)) {
+                    variables["#"] = evaluate(token.args[3].args);
+                }
+            }
+        }
         if (token.value === "block") {
-            variables["#"] = evaluate(token.args);
+            evaluate(token.args);
         } else if (token.type === "function") {
-            variables["#"] = evalFunc(token);
+            evalFunc(token);
         }
     }
     return variables["#"];
@@ -209,13 +261,13 @@ const runProgram = (inputString: string) => {
     evaluate(AST);
 };
 
-const main = () => {
-    fs.readFile(path.resolve(__dirname, "myprogram.ws"), "utf-8", (err, data) => {
+const main = (dir: string) => {
+    fs.readFile(path.resolve(__dirname, dir), "utf-8", (err, data) => {
         if (err) throw err;
         runProgram(removeLineBreaks(data));
     })
 };
 
-main();
+main(process.argv[2]);
 
-export { lexifyArr, parseArr, evalFunc, evaluate, runProgram };
+export {lexifyArr, parseArr, evalFunc, evaluate, runProgram};

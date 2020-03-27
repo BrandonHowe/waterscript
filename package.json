@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -r ts-node/register test/unit.ts"
+    "test": "mocha -r ts-node/register test/unit.ts",
+    "water": "node index.js"
   },
   "author": "",
   "license": "ISC",

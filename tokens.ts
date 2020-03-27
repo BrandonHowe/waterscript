@@ -69,6 +69,41 @@ const argumentsToken: Token = {
     type: "args"
 };
 
+const ifToken: Token = {
+    value: "if",
+    type: "if"
+};
+
+const greaterThanToken: Token = {
+    value: ">",
+    type: "compare"
+};
+
+const lessThanToken: Token = {
+    value: "<",
+    type: "compare"
+};
+
+const greaterEqualToken: Token = {
+    value: ">=",
+    type: "compare"
+};
+
+const lessEqualToken: Token = {
+    value: "<=",
+    type: "compare"
+};
+
+const equalToken: Token = {
+    value: "==",
+    type: "compare"
+};
+
+const notEqualToken: Token = {
+    value: "!=",
+    type: "compare"
+};
+
 const tokenObj: Record<string, Token> = {
     plusToken,
     minusToken,
@@ -82,7 +117,14 @@ const tokenObj: Record<string, Token> = {
     equalsToken,
     semicolonToken,
     letToken,
-    argumentsToken
+    argumentsToken,
+    ifToken,
+    greaterThanToken,
+    lessThanToken,
+    greaterEqualToken,
+    lessEqualToken,
+    equalToken,
+    notEqualToken
 };
 
 export {Token, tokenObj};
