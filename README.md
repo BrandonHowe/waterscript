@@ -37,7 +37,7 @@ The four operators available for use are addition, subtraction, multiplication, 
 Do note that there is no order of operations; all commands are executed left to right.
 
 ```$xslt
-2 + 2 * 2; # returns 6
+2 + 2 * 2; # returns 8
 ```
 
 ### The Hash (#) operator and variables
